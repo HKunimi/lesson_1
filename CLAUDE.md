@@ -24,6 +24,30 @@ This is a **Next.js 16** app using the **App Router** with **TypeScript**, **Tai
 
 Tailwind is configured via PostCSS (`postcss.config.mjs`). TypeScript strict mode is enabled.
 
+## Clerk（認証・課金）
+
+Clerkを使った認証、サブスクリプション管理、課金機能の実装は `.claude/clerk_document.md` を参照すること。
+
+- 認証（サインアップ/サインイン）、プラン別アクセス制御、料金ページなどすべてClerkで実装する
+- 課金は **Clerk Billing**（Stripeベース）を使用する
+- SupabaseとのRLS連携については下記「Clerk × Supabase 連携」セクションを参照
+
+## Supabase
+
+Supabaseに関する実装は `.claude/supabase_document.md` を参照すること。
+
+- 開発環境は**方法1（クラウドベース）**を使用する — Dockerは使用しない
+- 環境変数は `.env.local` で管理する（`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`）
+- データベース設計・CRUD操作・RLS・リアルタイム機能などの詳細はすべて上記ドキュメントに従うこと
+
+## Clerk × Supabase 連携
+
+ClerkとSupabaseを組み合わせる場合（RLS連携・ユーザーID管理など）は `.claude/clerk_supabase_integration.md` を参照すること。
+
+## Tailwind CSS
+
+Tailwind CSS v4のセットアップ・設定方法は `.claude/tailwind_document.md` を参照すること。
+
 ## Design
 
 All UI implementation must follow the design system defined in `.claude/design_system.md`. Key rules:
