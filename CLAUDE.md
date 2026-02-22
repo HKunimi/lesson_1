@@ -13,16 +13,64 @@ npm run lint     # Run ESLint
 
 No test runner is configured yet.
 
+## Project
+
+**Project Tracker** — 作業時間計測アプリ。タイマー計測・手動入力・カテゴリ管理・分析レポート機能を持つ。
+
+- 要件定義: `.claude/requirements.md`
+- 開発ロードマップ: `.claude/development_roadmap.md`
+
 ## Architecture
 
-This is a **Next.js 16** app using the **App Router** with **TypeScript**, **Tailwind CSS v4**, and **React 19**.
+**Next.js 16** / App Router / **TypeScript** / **Tailwind CSS v4** / **React 19**
 
-- `app/layout.tsx` — Root layout with global font and HTML shell
-- `app/page.tsx` — Home page (entry point for the app)
-- `app/globals.css` — Global styles (Tailwind base)
-- `@/*` path alias maps to the project root
+`@/*` path alias maps to the project root.
 
-Tailwind is configured via PostCSS (`postcss.config.mjs`). TypeScript strict mode is enabled.
+### Planned Route Structure
+
+```
+app/
+├── page.tsx                  # トップページ（サービス紹介・CTA）
+├── layout.tsx                # Root layout
+├── globals.css               # Tailwind base styles
+├── (auth)/
+│   ├── sign-in/page.tsx
+│   └── sign-up/page.tsx
+├── dashboard/page.tsx        # タイマー・作業履歴（認証必須）
+├── categories/page.tsx       # カテゴリ管理（認証必須）
+├── report/page.tsx           # 分析レポート（プレミアム限定）
+├── pricing/page.tsx          # 料金ページ（Clerk PricingTable）
+├── user-setting/page.tsx     # アカウント設定
+└── api/
+    ├── categories/           # CRUD
+    ├── time-entries/         # CRUD
+    └── insights/             # Claude APIを呼び出すAIインサイト生成
+```
+
+### Planned Database Schema（Supabase）
+
+- `categories` — ユーザーが作成するカテゴリ（名前・色・お気に入りフラグ）
+- `time_entries` — 作業ログ（開始/終了時刻・duration・category_id・メモ）
+
+タイマーの実行中状態は `localStorage` で管理し、ページリロード後も継続できるようにする。
+
+## Environment Variables
+
+`.env.local` で管理：
+
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY
+ANTHROPIC_API_KEY          # AIインサイト機能（Claude API）で使用
+```
+
+## Next.js 16 の注意事項
+
+- **`middleware.ts` は廃止** — Next.js 16 では `proxy.ts` を使用する
+- Clerk の `clerkMiddleware` は `proxy.ts` に記述する
 
 ## Clerk（認証・課金）
 
@@ -30,6 +78,7 @@ Clerkを使った認証、サブスクリプション管理、課金機能の実
 
 - 認証（サインアップ/サインイン）、プラン別アクセス制御、料金ページなどすべてClerkで実装する
 - 課金は **Clerk Billing**（Stripeベース）を使用する
+- プレミアム判定は `has({ plan: 'premium' })` で行う（Clerkダッシュボードでスラグを `premium` に設定）
 - SupabaseとのRLS連携については下記「Clerk × Supabase 連携」セクションを参照
 
 ## Supabase
@@ -37,8 +86,8 @@ Clerkを使った認証、サブスクリプション管理、課金機能の実
 Supabaseに関する実装は `.claude/supabase_document.md` を参照すること。
 
 - 開発環境は**方法1（クラウドベース）**を使用する — Dockerは使用しない
-- 環境変数は `.env.local` で管理する（`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`）
 - データベース設計・CRUD操作・RLS・リアルタイム機能などの詳細はすべて上記ドキュメントに従うこと
+- usersテーブルが必要な場合はClerk Webhookを使わず、初回データ登録時に作成する
 
 ## Clerk × Supabase 連携
 

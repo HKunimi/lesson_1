@@ -1,0 +1,1301 @@
+# Clerk日本語化チュートリアル
+ 
+このチュートリアルでは、Next.jsアプリケーションでClerkの認証UIを日本語化する方法を説明します。Clerkは多言語対応をサポートしており、ローカライゼーションオブジェクトを提供することで、すべてのUI要素を日本語に変更できます。
+ 
+## 概要
+ 
+Clerkの日本語化は以下の3つのステップで完了します。
+ 
+1. 日本語翻訳ファイルの作成
+2. ClerkProviderへの適用
+3. 動作確認
+ 
+それでは、各ステップを詳しく見ていきましょう。
+ 
+## 1. 日本語ローカライゼーションファイルの作成
+ 
+まず、プロジェクトの `src` ディレクトリに`locales`フォルダを作成し、その中に`ja.ts`ファイルを作成します。このファイルには、Clerkのすべてのテキスト要素の日本語翻訳を定義します。
+ 
+```bash
+mkdir src/locales
+touch src/locales/extended_ja_jp.ts
+```
+ 
+次に `src/locales/extended_ja_jp.ts`に以下の内容を記述します。
+ 
+```typescript
+import type { LocalizationResource } from '@clerk/types'
+ 
+export const extendedJaJP: LocalizationResource = {
+  locale: 'ja-JP',
+  apiKeys: {
+    action__add: '追加',
+    action__search: '検索',
+    createdAndExpirationStatus__expiresOn: '作成日 {{ createdDate | shortDate("ja-JP") }} • 有効期限 {{ expiresDate | longDate("ja-JP") }}',
+    createdAndExpirationStatus__never: '無期限',
+    detailsTitle__emptyRow: 'まだAPIキーがありません',
+    formButtonPrimary__add: 'APIキーを追加',
+    formFieldCaption__expiration__expiresOn: '有効期限 {{ date | longDate("ja-JP") }}',
+    formFieldCaption__expiration__never: '無期限',
+    formFieldOption__expiration__180d: '180日',
+    formFieldOption__expiration__1d: '1日',
+    formFieldOption__expiration__1y: '1年',
+    formFieldOption__expiration__30d: '30日',
+    formFieldOption__expiration__60d: '60日',
+    formFieldOption__expiration__7d: '7日',
+    formFieldOption__expiration__90d: '90日',
+    formFieldOption__expiration__never: '無期限',
+    formHint: 'APIキーは、APIを呼び出すためにアプリケーションが使用します。',
+    formTitle: '新しいAPIキー',
+    lastUsed__days: '{{days}}日前',
+    lastUsed__hours: '{{hours}}時間前',
+    lastUsed__minutes: '{{minutes}}分前',
+    lastUsed__months: '{{months}}か月前',
+    lastUsed__seconds: '{{seconds}}秒前',
+    lastUsed__years: '{{years}}年前',
+    menuAction__revoke: '取り消す',
+    revokeConfirmation: {
+      confirmationText: 'このAPIキーを取り消しますか？',
+      formButtonPrimary__revoke: '取り消す',
+      formHint:
+        'このAPIキーを取り消すと、このキーを使用するすべてのアプリケーションが動作しなくなります。',
+      formTitle: 'APIキーの取り消し',
+    },
+  },
+  backButton: '戻る',
+  badge__activePlan: '有効なプラン',
+  badge__canceledEndsAt: 'キャンセル済み • 終了日 {{ date | shortDate("ja-JP") }}',
+  badge__currentPlan: '現在のプラン',
+  badge__default: 'デフォルト',
+  badge__endsAt: '終了日 {{ date | shortDate("ja-JP") }}',
+  badge__expired: '期限切れ',
+  badge__otherImpersonatorDevice: '他の模倣者デバイス',
+  badge__pastDueAt: '支払期限超過 {{ date | shortDate("ja-JP") }}',
+  badge__pastDuePlan: '支払期限超過',
+  badge__primary: 'プライマリ',
+  badge__renewsAt: '更新日 {{ date | shortDate("ja-JP") }}',
+  badge__requiresAction: 'アクションが必要',
+  badge__startsAt: '開始日 {{ date | shortDate("ja-JP") }}',
+  badge__thisDevice: 'このデバイス',
+  badge__unverified: '未確認',
+  badge__upcomingPlan: '今後のプラン',
+  badge__userDevice: 'ユーザーデバイス',
+  badge__you: 'あなた',
+  commerce: {
+    addPaymentMethod: '支払い方法を追加',
+    alwaysFree: '常に無料',
+    annually: '年間',
+    availableFeatures: '利用可能な機能',
+    billedAnnually: '年払い',
+    billedMonthlyOnly: '月払いのみ',
+    cancelSubscription: 'サブスクリプションをキャンセル',
+    cancelSubscriptionAccessUntil: '{{plan}}の機能を{{ date | longDate("ja-JP") }}まで利用できます。その後はアクセスできなくなります。',
+    cancelSubscriptionNoCharge: '料金は発生しません',
+    cancelSubscriptionTitle: 'サブスクリプションをキャンセルしますか？',
+    cannotSubscribeMonthly: '月払いプランは利用できません',
+    cannotSubscribeUnrecoverable: 'サブスクリプションの取得ができません',
+    checkout: {
+      description__paymentSuccessful: '支払いが完了しました',
+      description__subscriptionSuccessful: 'サブスクリプションの設定が完了しました',
+      downgradeNotice: 'プランをダウングレードしています',
+      emailForm: {
+        subtitle: '領収書のコピーを受け取るメールアドレスを入力してください',
+        title: 'メールアドレスを入力',
+      },
+      lineItems: {
+        title__paymentMethod: '支払い方法',
+        title__statementId: '明細ID',
+        title__subscriptionBegins: 'サブスクリプション開始日',
+        title__totalPaid: '合計支払い額',
+      },
+      pastDueNotice: '支払い期限が過ぎています',
+      perMonth: '月あたり',
+      title: 'チェックアウト',
+      title__paymentSuccessful: '支払いが完了しました',
+      title__subscriptionSuccessful: 'サブスクリプションが有効になりました',
+    },
+    credit: 'クレジット',
+    creditRemainder: '残りクレジット',
+    defaultFreePlanActive: 'デフォルトの無料プランが有効です',
+    free: '無料',
+    getStarted: '始める',
+    keepSubscription: 'サブスクリプションを維持',
+    manage: '管理',
+    manageSubscription: 'サブスクリプションを管理',
+    month: '月',
+    monthly: '月間',
+    pastDue: '支払い期限超過',
+    pay: '支払う',
+    paymentMethods: '支払い方法',
+    paymentSource: {
+      applePayDescription: {
+        annual: 'Apple Payで年間{{price}}を支払う',
+        monthly: 'Apple Payで月間{{price}}を支払う',
+      },
+      dev: {
+        anyNumbers: '任意の数字',
+        cardNumber: 'カード番号',
+        cvcZip: 'CVC/ZIP',
+        developmentMode: '開発モード',
+        expirationDate: '有効期限',
+        testCardInfo: 'テストカード情報',
+      },
+    },
+    popular: '人気',
+    pricingTable: {
+      billingCycle: '請求サイクル',
+      included: '含まれるもの',
+    },
+    reSubscribe: '再購読',
+    seeAllFeatures: 'すべての機能を見る',
+    subscribe: '購読',
+    subscriptionDetails: {
+      beginsOn: '開始日',
+      currentBillingCycle: '現在の請求サイクル',
+      endsOn: '終了日',
+      nextPaymentAmount: '次回支払い額',
+      nextPaymentOn: '次回支払い日',
+      pastDueAt: '支払い期限',
+      renewsAt: '更新日',
+      subscribedOn: '購読日',
+      title: 'サブスクリプション詳細',
+    },
+    subtotal: '小計',
+    switchPlan: 'プランを変更',
+    switchToAnnual: '年払いに変更',
+    switchToAnnualWithAnnualPrice: '年払いに変更して{{price}}を節約',
+    switchToMonthly: '月払いに変更',
+    switchToMonthlyWithPrice: '月払いに変更（{{price}}）',
+    totalDue: '支払い総額',
+    totalDueToday: '本日の支払い総額',
+    viewFeatures: '機能を見る',
+    year: '年',
+  },
+  createOrganization: {
+    formButtonSubmit: '組織を作成する',
+    invitePage: {
+      formButtonReset: 'スキップ',
+    },
+    title: '組織の作成',
+  },
+  dates: {
+    lastDay: "昨日の{{ date | timeString('ja-JP') }}に",
+    next6Days: "{{ date | weekday('ja-JP','long') }}の{{ date | timeString('ja-JP') }}に",
+    nextDay: "明日の{{ date | timeString('ja-JP') }}に",
+    numeric: "{{ date | numeric('ja-JP') }}に",
+    previous6Days: "{{ date | weekday('ja-JP','long') }}の{{ date | timeString('ja-JP') }}に",
+    sameDay: "今日の{{ date | timeString('ja-JP') }}に",
+  },
+  dividerText: 'または',
+  footerActionLink__alternativePhoneCodeProvider: '他の電話番号を使用',
+  footerActionLink__useAnotherMethod: '別の方法を使用する',
+  footerPageLink__help: 'ヘルプ',
+  footerPageLink__privacy: 'プライバシー',
+  footerPageLink__terms: '利用規約',
+  formButtonPrimary: '続ける',
+  formButtonPrimary__verify: '確認する',
+  formFieldAction__forgotPassword: 'パスワードをお忘れですか？',
+  formFieldError__matchingPasswords: 'パスワードが一致します。',
+  formFieldError__notMatchingPasswords: 'パスワードが一致しません。',
+  formFieldError__verificationLinkExpired:
+    '検証リンクの有効期限が切れています。新しいリンクをリクエストしてください。',
+  formFieldHintText__optional: '任意',
+  formFieldHintText__slug: 'スラグは人間が読めるユニークなIDです。URLで良く使われます。',
+  formFieldInputPlaceholder__apiKeyDescription: 'APIキーの説明',
+  formFieldInputPlaceholder__apiKeyExpirationDate: '有効期限を選択',
+  formFieldInputPlaceholder__apiKeyName: 'APIキー名',
+  formFieldInputPlaceholder__backupCode: 'バックアップコード',
+  formFieldInputPlaceholder__confirmDeletionUserAccount: 'アカウント削除',
+  formFieldInputPlaceholder__emailAddress: 'メールアドレス',
+  formFieldInputPlaceholder__emailAddress_username: 'メールアドレスまたはユーザー名',
+  formFieldInputPlaceholder__emailAddresses:
+    'スペースまたはカンマで区切って、1つ以上のメールアドレスを入力または貼り付けてください',
+  formFieldInputPlaceholder__firstName: '名',
+  formFieldInputPlaceholder__lastName: '姓',
+  formFieldInputPlaceholder__organizationDomain: '組織ドメイン',
+  formFieldInputPlaceholder__organizationDomainEmailAddress: '組織ドメインのメールアドレス',
+  formFieldInputPlaceholder__organizationName: '組織名',
+  formFieldInputPlaceholder__organizationSlug: 'my-organization',
+  formFieldInputPlaceholder__password: 'パスワード',
+  formFieldInputPlaceholder__phoneNumber: '電話番号',
+  formFieldInputPlaceholder__username: 'ユーザー名',
+  formFieldLabel__apiKeyDescription: '説明',
+  formFieldLabel__apiKeyExpiration: '有効期限',
+  formFieldLabel__apiKeyName: '名前',
+  formFieldLabel__automaticInvitations: 'このドメインの自動招待を有効にする',
+  formFieldLabel__backupCode: 'バックアップコード',
+  formFieldLabel__confirmDeletion: '削除の確認',
+  formFieldLabel__confirmPassword: 'パスワードの確認',
+  formFieldLabel__currentPassword: '現在のパスワード',
+  formFieldLabel__emailAddress: 'メールアドレス',
+  formFieldLabel__emailAddress_username: 'メールアドレスまたはユーザー名',
+  formFieldLabel__emailAddresses: 'メールアドレス',
+  formFieldLabel__firstName: '名',
+  formFieldLabel__lastName: '姓',
+  formFieldLabel__newPassword: '新しいパスワード',
+  formFieldLabel__organizationDomain: 'ドメイン',
+  formFieldLabel__organizationDomainDeletePending: '保留中の招待と提案を削除',
+  formFieldLabel__organizationDomainEmailAddress: '確認用のメールアドレス',
+  formFieldLabel__organizationDomainEmailAddressDescription:
+    'このドメインを確認するためのコードを受け取るメールアドレスを入力してください。',
+  formFieldLabel__organizationName: '組織名',
+  formFieldLabel__organizationSlug: 'スラグURL',
+  formFieldLabel__passkeyName: 'パスキー名',
+  formFieldLabel__password: 'パスワード',
+  formFieldLabel__phoneNumber: '電話番号',
+  formFieldLabel__role: '役割',
+  formFieldLabel__signOutOfOtherSessions: '他のデバイスからサインアウト',
+  formFieldLabel__username: 'ユーザー名',
+  impersonationFab: {
+    action__signOut: 'サインアウト',
+    title: '{{identifier}}としてサインイン中',
+  },
+  maintenanceMode: 'メンテナンス中',
+  membershipRole__admin: '管理者',
+  membershipRole__basicMember: 'メンバー',
+  membershipRole__guestMember: 'ゲスト',
+  organizationList: {
+    action__createOrganization: '組織を作成する',
+    action__invitationAccept: '参加する',
+    action__suggestionsAccept: '参加をリクエストする',
+    createOrganization: '組織を作成',
+    invitationAcceptedLabel: '参加しました',
+    subtitle: '{{applicationName}}',
+    suggestionsAcceptedLabel: '承認待ち',
+    title: 'アカウントを選択',
+    titleWithoutPersonal: '組織を選択',
+  },
+  organizationProfile: {
+    apiKeysPage: {
+      title: 'APIキー',
+    },
+    badge__automaticInvitation: '自動招待',
+    badge__automaticSuggestion: '自動サジェスト',
+    badge__manualInvitation: '自動登録なし',
+    badge__unverified: '未承認',
+    billingPage: {
+      paymentHistorySection: {
+        empty: '支払い履歴がありません',
+        notFound: '支払い履歴が見つかりません',
+        tableHeader__amount: '金額',
+        tableHeader__date: '日付',
+        tableHeader__status: 'ステータス',
+      },
+      paymentSourcesSection: {
+        actionLabel__default: 'デフォルトに設定',
+        actionLabel__remove: '削除',
+        add: '支払い方法を追加',
+        addSubtitle: '新しい支払い方法を追加します',
+        cancelButton: 'キャンセル',
+        formButtonPrimary__add: '追加',
+        formButtonPrimary__pay: '支払う',
+        payWithTestCardButton: 'テストカードで支払う',
+        removeResource: {
+          messageLine1: 'この支払い方法を削除しますか？',
+          messageLine2: 'この操作は元に戻せません。',
+          successMessage: '支払い方法が削除されました',
+          title: '支払い方法の削除',
+        },
+        title: '支払い方法',
+      },
+      start: {
+        headerTitle__payments: '支払い',
+        headerTitle__plans: 'プラン',
+        headerTitle__statements: '明細書',
+        headerTitle__subscriptions: 'サブスクリプション',
+      },
+      statementsSection: {
+        empty: '明細書がありません',
+        itemCaption__paidForPlan: '{{planName}}プランの支払い',
+        itemCaption__proratedCredit: '日割計算によるクレジット',
+        itemCaption__subscribedAndPaidForPlan: '{{planName}}プランの購読と支払い',
+        notFound: '明細書が見つかりません',
+        tableHeader__amount: '金額',
+        tableHeader__date: '日付',
+        title: '明細書',
+        totalPaid: '支払い総額',
+      },
+      subscriptionsListSection: {
+        actionLabel__newSubscription: '新しいサブスクリプション',
+        actionLabel__switchPlan: 'プランを変更',
+        tableHeader__edit: '編集',
+        tableHeader__plan: 'プラン',
+        tableHeader__startDate: '開始日',
+        title: 'サブスクリプション',
+      },
+      subscriptionsSection: {
+        actionLabel__default: 'デフォルト',
+      },
+      switchPlansSection: {
+        title: 'プランを変更',
+      },
+      title: '請求',
+    },
+    createDomainPage: {
+      subtitle:
+        'ドメインを追加して検証します。このドメインのメールアドレスを持つユーザーは、自動的に組織に参加するか、参加をリクエストすることができます。',
+      title: 'ドメインを追加',
+    },
+    invitePage: {
+      detailsTitle__inviteFailed:
+        '招待状を送信できませんでした。以下を修正してもう一度試してください:',
+      formButtonPrimary__continue: '招待状を送信する',
+      selectDropdown__role: '役割を選択',
+      subtitle: 'この組織に新しいメンバーを招待する',
+      successMessage: '招待状が正常に送信されました',
+      title: 'メンバーを招待',
+    },
+    membersPage: {
+      action__invite: '招待',
+      action__search: '検索',
+      activeMembersTab: {
+        menuAction__remove: 'メンバーの削除',
+        tableHeader__actions: 'アクション',
+        tableHeader__joined: '参加日時',
+        tableHeader__role: '役割',
+        tableHeader__user: 'ユーザー',
+      },
+      detailsTitle__emptyRow: '表示するメンバーはありません',
+      invitationsTab: {
+        autoInvitations: {
+          headerSubtitle:
+            'メールドメインを組織に接続することでユーザーを招待します。一致するメールドメインを持つユーザーは、いつでも組織に参加することができます。',
+          headerTitle: '自動招待',
+          primaryButton: '検証済みドメインを管理',
+        },
+        table__emptyRow: '表示する招待はありません',
+      },
+      invitedMembersTab: {
+        menuAction__revoke: '招待を取り消す',
+        tableHeader__invited: '招待済み',
+      },
+      requestsTab: {
+        autoSuggestions: {
+          headerSubtitle:
+            '一致するメールドメインを持つユーザーは、組織への参加をリクエストする提案を受け取ることができます。',
+          headerTitle: '自動提案',
+          primaryButton: '検証済みドメインを管理',
+        },
+        menuAction__approve: '承認',
+        menuAction__reject: '拒否',
+        tableHeader__requested: 'アクセスをリクエストしました',
+        table__emptyRow: '表示するリクエストはありません',
+      },
+      start: {
+        headerTitle__invitations: '招待',
+        headerTitle__members: 'メンバー',
+        headerTitle__requests: 'リクエスト',
+      },
+    },
+    navbar: {
+      apiKeys: 'APIキー',
+      billing: '請求',
+      description: '組織を管理します。',
+      general: '一般',
+      members: 'メンバー',
+      title: '組織',
+    },
+    plansPage: {
+      alerts: {
+        noPermissionsToManageBilling: '請求を管理する権限がありません',
+      },
+      title: 'プラン',
+    },
+    profilePage: {
+      dangerSection: {
+        deleteOrganization: {
+          actionDescription: '続行するには "{{organizationName}}" と入力してください。',
+          messageLine1: 'この組織を削除してもよろしいですか？',
+          messageLine2: 'この操作は永久的で取り消すことはできません。',
+          successMessage: '組織が削除されました。',
+          title: '組織の削除',
+        },
+        leaveOrganization: {
+          actionDescription: '続行するには "{{organizationName}}" と入力してください。',
+          messageLine1:
+            'この組織から脱退してもよろしいですか？この組織とそのアプリケーションへのアクセスが失われます。',
+          messageLine2: 'この操作は永久的で取り消すことはできません。',
+          successMessage: '組織から脱退しました。',
+          title: '組織を脱退',
+        },
+        title: '注意',
+      },
+      domainSection: {
+        menuAction__manage: '管理',
+        menuAction__remove: '削除',
+        menuAction__verify: '検証',
+        primaryButton: 'ドメインを追加',
+        subtitle:
+          '検証済みのメールドメインに基づいて、ユーザーが自動的に組織に参加するか、参加をリクエストすることを許可します。',
+        title: '検証済みドメイン',
+      },
+      successMessage: '組織が更新されました。',
+      title: '組織プロフィール',
+    },
+    removeDomainPage: {
+      messageLine1: 'メールドメイン {{domain}} が削除されます。',
+      messageLine2: 'この後、ユーザーは自動的に組織に参加することができなくなります。',
+      successMessage: '{{domain}} が削除されました。',
+      title: 'ドメインの削除',
+    },
+    start: {
+      headerTitle__general: '一般',
+      headerTitle__members: 'メンバー',
+      profileSection: {
+        primaryButton: '編集',
+        title: '組織プロフィール',
+        uploadAction__title: 'ロゴ',
+      },
+    },
+    verifiedDomainPage: {
+      dangerTab: {
+        calloutInfoLabel: 'このドメインを削除すると、招待されたユーザーに影響が出ます。',
+        removeDomainActionLabel__remove: 'ドメインを削除',
+        removeDomainSubtitle: '検証済みドメインからこのドメインを削除します',
+        removeDomainTitle: 'ドメインの削除',
+      },
+      enrollmentTab: {
+        automaticInvitationOption__description:
+          'サインアップ時にユーザーは自動的に組織に招待され、いつでも参加することができます。',
+        automaticInvitationOption__label: '自動招待',
+        automaticSuggestionOption__description:
+          'ユーザーは組織への参加をリクエストする提案を受け取りますが、参加する前に管理者の承認が必要です。',
+        automaticSuggestionOption__label: '自動提案',
+        calloutInfoLabel: '新しいユーザーにのみ登録モードの変更が影響します。',
+        calloutInvitationCountLabel: 'ユーザーに送信された保留中の招待状: {{count}}',
+        calloutSuggestionCountLabel: 'ユーザーに送信された保留中の提案: {{count}}',
+        manualInvitationOption__description: 'ユーザーは組織に手動で招待されることのみが可能です。',
+        manualInvitationOption__label: '自動登録なし',
+        subtitle: 'このドメインのユーザーが組織に参加する方法を選択してください。',
+      },
+      start: {
+        headerTitle__danger: '危険',
+        headerTitle__enrollment: '登録オプション',
+      },
+      subtitle: 'ドメイン {{domain}} が検証されました。登録モードを選択して続行してください。',
+      title: '{{domain}} の更新',
+    },
+    verifyDomainPage: {
+      formSubtitle: 'メールアドレスに送信された検証コードを入力してください',
+      formTitle: '検証コード',
+      resendButton: 'コードを再送信',
+      subtitle: 'ドメイン {{domainName}} はメールで検証する必要があります。',
+      subtitleVerificationCodeScreen:
+        '{{emailAddress}} に検証コードが送信されました。コードを入力して続行してください。',
+      title: 'ドメインを検証',
+    },
+  },
+  organizationSwitcher: {
+    action__createOrganization: '組織の作成',
+    action__invitationAccept: '参加する',
+    action__manageOrganization: '組織の管理',
+    action__suggestionsAccept: '参加をリクエストする',
+    notSelected: '組織が選択されていません',
+    personalWorkspace: '個人ワークスペース',
+    suggestionsAcceptedLabel: '承認待ち',
+  },
+  paginationButton__next: '次へ',
+  paginationButton__previous: '前へ',
+  paginationRowText__displaying: '表示中',
+  paginationRowText__of: '全',
+  reverification: {
+    alternativeMethods: {
+      actionLink: 'ヘルプを取得',
+      actionText: 'これらのいずれも持っていませんか？',
+      blockButton__backupCode: 'バックアップコードを使用',
+      blockButton__emailCode: '{{identifier}}にメールコードを送信',
+      blockButton__passkey: 'パスキーを使用',
+      blockButton__password: 'パスワードを使用',
+      blockButton__phoneCode: '{{identifier}}にSMSコードを送信',
+      blockButton__totp: '認証アプリを使用',
+      getHelp: {
+        blockButton__emailSupport: 'メールサポート',
+        content: 'アカウントにアクセスできない場合は、メールでお問い合わせください。',
+        title: 'ヘルプを取得',
+      },
+      subtitle: '別の検証方法を使用してください',
+      title: '別の方法を使用',
+    },
+    backupCodeMfa: {
+      subtitle: 'アカウントへのアクセスを続行するためにバックアップコードを入力してください',
+      title: 'バックアップコードを入力',
+    },
+    emailCode: {
+      formTitle: '検証コード',
+      resendButton: 'コードを再送信',
+      subtitle: 'メールに送信された検証コードを入力してください',
+      title: 'メールを確認',
+    },
+    noAvailableMethods: {
+      message: '続行できません。使用可能な検証方法がありません。',
+      subtitle: '管理者に連絡してサポートを求めてください',
+      title: '検証できません',
+    },
+    passkey: {
+      blockButton__passkey: 'パスキーを使用',
+      subtitle: 'アカウントへのアクセスを続行するためにパスキーを使用してください',
+      title: 'パスキーを使用',
+    },
+    password: {
+      actionLink: '別の方法を使用',
+      subtitle: 'アカウントのパスワードを入力してください',
+      title: 'パスワードを入力',
+    },
+    phoneCode: {
+      formTitle: '検証コード',
+      resendButton: 'コードを再送信',
+      subtitle: '電話番号に送信された検証コードを入力してください',
+      title: '電話を確認',
+    },
+    phoneCodeMfa: {
+      formTitle: '検証コード',
+      resendButton: 'コードを再送信',
+      subtitle:
+        'アカウントへのアクセスを続行するために、電話番号に送信された検証コードを入力してください',
+      title: '電話を確認',
+    },
+    totpMfa: {
+      formTitle: '検証コード',
+      subtitle:
+        'アカウントへのアクセスを続行するために、認証アプリから検証コードを入力してください',
+      title: '二要素認証',
+    },
+  },
+  signIn: {
+    accountSwitcher: {
+      action__addAccount: 'アカウントを追加',
+      action__signOutAll: '全てのアカウントからサインアウト',
+      subtitle: '続行するアカウントを選択してください。',
+      title: 'アカウントを選択',
+    },
+    alternativeMethods: {
+      actionLink: 'ヘルプを取得',
+      actionText: 'これらのいずれも持っていませんか？',
+      blockButton__backupCode: 'バックアップコードを使用する',
+      blockButton__emailCode: '{{identifier}}にメールコードを送信',
+      blockButton__emailLink: '{{identifier}}にメールリンクを送信',
+      blockButton__passkey: 'パスキーを使用してサインイン',
+      blockButton__password: 'パスワードでサインインする',
+      blockButton__phoneCode: '{{identifier}}にSMSコードを送信',
+      blockButton__totp: '認証アプリを使用する',
+      getHelp: {
+        blockButton__emailSupport: 'メールサポート',
+        content:
+          'アカウントにサインインできない場合は、メールでお問い合わせいただければ、できるだけ早くアクセスを回復するためにお手伝いいたします。',
+        title: 'ヘルプを取得',
+      },
+      subtitle: '問題が発生していますか？これらの方法を使用してサインインすることができます。',
+      title: '別の方法を使用',
+    },
+    alternativePhoneCodeProvider: {
+      formTitle: '検証コード',
+      resendButton: 'コードを再送信',
+      subtitle: '別の電話番号を使用してください',
+      title: '別の電話番号を使用',
+    },
+    backupCodeMfa: {
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      title: 'バックアップコードを入力',
+    },
+    emailCode: {
+      formTitle: '検証コード',
+      resendButton: 'コードを再送信',
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      title: 'メールを確認',
+    },
+    emailLink: {
+      clientMismatch: {
+        subtitle:
+          'このリンクは別のブラウザまたはデバイスで開かれたようです。セキュリティ上の理由から、このリンクは元のブラウザとデバイスで開く必要があります。',
+        title: 'クライアントが一致しません',
+      },
+      expired: {
+        subtitle: '元のタブに戻って続行してください。',
+        title: 'この検証リンクは期限切れです',
+      },
+      failed: {
+        subtitle: '元のタブに戻って続行してください。',
+        title: 'この検証リンクは無効です',
+      },
+      formSubtitle: 'メールに送信された検証リンクを使用してください',
+      formTitle: '検証リンク',
+      loading: {
+        subtitle: 'まもなくリダイレクトされます',
+        title: 'サインイン中...',
+      },
+      resendButton: 'リンクを再送信',
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      title: 'メールを確認',
+      unusedTab: {
+        title: 'このタブを閉じてもかまいません',
+      },
+      verified: {
+        subtitle: 'まもなくリダイレクトされます',
+        title: '正常にサインインしました',
+      },
+      verifiedSwitchTab: {
+        subtitle: '続行するには元のタブに戻ってください',
+        subtitleNewTab: '新しく開いたタブに戻って続行してください',
+        titleNewTab: '他のタブでサインイン済み',
+      },
+    },
+    forgotPassword: {
+      formTitle: 'パスワードリセットコード',
+      resendButton: 'コードを再送信',
+      subtitle: 'パスワードをリセットするために',
+      subtitle_email: 'まず、メールIDに送信されたコードを入力してください',
+      subtitle_phone: 'まず、電話に送信されたコードを入力してください',
+      title: 'パスワードをリセット',
+    },
+    forgotPasswordAlternativeMethods: {
+      blockButton__resetPassword: 'パスワードをリセット',
+      label__alternativeMethods: 'または、別の方法でサインインしてください。',
+      title: 'パスワードをお忘れですか？',
+    },
+    noAvailableMethods: {
+      message: 'サインインできません。利用可能な認証方法がありません。',
+      subtitle: 'エラーが発生しました',
+      title: 'サインインできません',
+    },
+    passkey: {
+      subtitle: 'パスキーを使用してサインインしてください',
+      title: 'パスキーを使用',
+    },
+    password: {
+      actionLink: '別の方法を使用',
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      title: 'パスワードを入力',
+    },
+    passwordPwned: {
+      title: 'このパスワードは漏洩しています',
+    },
+    phoneCode: {
+      formTitle: '検証コード',
+      resendButton: 'コードを再送信',
+      subtitle: '{{applicationName}} への続行のため',
+      title: '電話を確認してください',
+    },
+    phoneCodeMfa: {
+      formTitle: '検証コード',
+      resendButton: 'コードを再送信',
+      subtitle: '確認を続けるために、電話番号に送信されたコードを入力してください',
+      title: '電話を確認してください',
+    },
+    resetPassword: {
+      formButtonPrimary: 'パスワードをリセット',
+      requiredMessage:
+        '未確認のメールアドレスを持つアカウントが既に存在します。セキュリティのためにパスワードをリセットしてください。',
+      successMessage: 'パスワードが正常に変更されました。お待ちください、サインインしています。',
+      title: 'パスワードをリセット',
+    },
+    resetPasswordMfa: {
+      detailsLabel: 'パスワードをリセットする前に、身元を確認する必要があります。',
+    },
+    start: {
+      actionLink: 'サインアップ',
+      actionLink__join_waitlist: 'ウェイトリストに登録',
+      actionLink__use_email: 'メールアドレスを使用',
+      actionLink__use_email_username: 'メールアドレスまたはユーザー名を使用',
+      actionLink__use_passkey: 'パスキーを使用',
+      actionLink__use_phone: '電話番号を使用',
+      actionLink__use_username: 'ユーザー名を使用',
+      actionText: 'アカウントをお持ちでないですか？',
+      actionText__join_waitlist: '先行体験にご興味ありますか？',
+      alternativePhoneCodeProvider: {
+        actionLink: '別の電話番号を使用',
+        label: '代替の電話番号',
+        subtitle: 'コードを受け取る別の電話番号を使用します',
+        title: '別の電話番号を使用',
+      },
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      subtitleCombined: '認証を続ける',
+      title: 'サインイン',
+      titleCombined: 'サインインまたはサインアップ',
+    },
+    totpMfa: {
+      formTitle: '検証コード',
+      subtitle: '確認を続けるために、認証アプリからコードを入力してください',
+      title: '二段階認証',
+    },
+  },
+  signInEnterPasswordTitle: 'パスワードを入力してください',
+  signUp: {
+    alternativePhoneCodeProvider: {
+      resendButton: 'コードを再送信',
+      subtitle: '別の電話番号を使用してコードを受け取る',
+      title: '別の電話番号を使用',
+    },
+    continue: {
+      actionLink: 'サインイン',
+      actionText: 'アカウントをお持ちですか？',
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      title: '未入力のフィールドを入力',
+    },
+    emailCode: {
+      formSubtitle: 'メールアドレスに送信された確認コードを入力してください',
+      formTitle: '確認コード',
+      resendButton: 'コードを再送信',
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      title: 'メールアドレスを確認',
+    },
+    emailLink: {
+      clientMismatch: {
+        subtitle:
+          'このリンクは別のブラウザまたはデバイスで開かれたようです。セキュリティ上の理由から、このリンクは元のブラウザとデバイスで開く必要があります。',
+        title: 'クライアントが一致しません',
+      },
+      formSubtitle: 'メールアドレスに送信された確認リンクを使用してください',
+      formTitle: '確認リンク',
+      loading: {
+        title: '登録中...',
+      },
+      resendButton: 'リンクを再送信',
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      title: 'メールアドレスを確認',
+      verified: {
+        title: '登録が完了しました',
+      },
+      verifiedSwitchTab: {
+        subtitle: '続行するために新しく開いたタブに戻ってください',
+        subtitleNewTab: '続行するために前のタブに戻ってください',
+        title: 'メールアドレスが正常に確認されました',
+      },
+    },
+    legalConsent: {
+      checkbox: {
+        label__onlyPrivacyPolicy: '{{privacyPolicyLink || link("個人情報保護方針")}}に同意します',
+        label__onlyTermsOfService: '{{termsOfServiceLink || link("利用規約")}}に同意します',
+        label__termsOfServiceAndPrivacyPolicy:
+          '{{termsOfServiceLink || link("利用規約")}}と{{privacyPolicyLink || link("個人情報保護方針")}}に同意します',
+      },
+      continue: {
+        subtitle: '続行するには同意が必要です',
+        title: '同意して続行',
+      },
+    },
+    phoneCode: {
+      formSubtitle: '電話番号に送信された確認コードを入力してください',
+      formTitle: '確認コード',
+      resendButton: 'コードを再送信',
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      title: '電話番号を確認',
+    },
+    restrictedAccess: {
+      actionLink: 'サインイン',
+      actionText: 'アカウントをお持ちですか？',
+      blockButton__emailSupport: 'メールサポート',
+      blockButton__joinWaitlist: 'ウェイトリストに登録',
+      subtitle: '現在、新規登録は制限されています',
+      subtitleWaitlist: '現在、新規登録は制限されていますが、ウェイトリストに登録できます',
+      title: 'アクセス制限',
+    },
+    start: {
+      actionLink: 'サインイン',
+      actionLink__use_email: 'メールアドレスを使用',
+      actionLink__use_phone: '電話番号を使用',
+      actionText: 'アカウントをお持ちですか？',
+      alternativePhoneCodeProvider: {
+        actionLink: '別の電話番号を使用',
+        label: '代替の電話番号',
+        subtitle: 'コードを受け取る別の電話番号を使用します',
+        title: '別の電話番号を使用',
+      },
+      subtitle: '{{applicationName}}へのアクセスを続ける',
+      subtitleCombined: '{{applicationName}}へのアクセスを続ける',
+      title: 'アカウントを作成',
+      titleCombined: 'アカウントを作成',
+    },
+  },
+  socialButtonsBlockButton: '{{provider|titleize}}で続ける',
+  socialButtonsBlockButtonManyInView: '{{provider}}で続ける',
+  unstable__errors: {
+    already_a_member_in_organization: 'すでにこの組織のメンバーです',
+    captcha_invalid:
+      'セキュリティ検証に失敗したため、サインアップに失敗しました。ページを更新して再試行するか、サポートセンターに連絡した上でサポートを受けてください。',
+    captcha_unavailable:
+      'ボット検証に失敗したため、サインアップに失敗しました。ページを更新して再試行するか、サポートに連絡してさらに支援を受けてください。',
+    form_code_incorrect: 'フォームコードが正しくありません。',
+    form_identifier_exists__email_address: 'このメールアドレスはすでに使用されています',
+    form_identifier_exists__phone_number: 'この電話番号はすでに使用されています',
+    form_identifier_exists__username: 'このユーザー名はすでに使用されています',
+    form_identifier_not_found: 'これらの詳細に一致するアカウントは見つかりませんでした。',
+    form_param_format_invalid: 'パラメータ形式が無効です。',
+    form_param_format_invalid__email_address:
+      'メールアドレスは有効なメールアドレスである必要があります。',
+    form_param_format_invalid__phone_number: '電話番号は有効な国際形式である必要があります',
+    form_param_max_length_exceeded__first_name: '氏名は256文字を超えることはできません。',
+    form_param_max_length_exceeded__last_name: '姓は256文字を超えることはできません。',
+    form_param_max_length_exceeded__name: '名前は256文字を超えることはできません。',
+    form_param_nil: 'パラメータが存在しません。',
+    form_param_value_invalid: 'パラメータ値が無効です',
+    form_password_incorrect: 'パスワードが正しくありません。',
+    form_password_length_too_short: 'パスワードの長さが短すぎます。',
+    form_password_not_strong_enough: 'パスワードの強度が不十分です。',
+    form_password_pwned:
+      'このパスワードは侵害の一部として見つかったため使用できません。別のパスワードを試してください。',
+    form_password_pwned__sign_in:
+      'このパスワードはデータ侵害で漏洩しています。セキュリティのため、別のパスワードを使用してください。',
+    form_password_size_in_bytes_exceeded:
+      'パスワードのバイト数が上限を超えています。短くするか、一部の特殊文字を削除してください。',
+    form_password_validation_failed: 'パスワードが間違っています',
+    form_username_invalid_character: 'ユーザー名に無効な文字が含まれています。',
+    form_username_invalid_length: 'ユーザー名の長さが無効です。',
+    identification_deletion_failed: '最後の識別情報は削除できません。',
+    not_allowed_access:
+      "メールアドレスまたは電話番号は登録に使用できません。これは、'+', '=', '#' または '.' がメールアドレスに使用されているか、一時的な電子メールサービスに接続されたドメインが使用されているか、明示的な除外が行われているためです。エラーが発生した場合は、サポートに連絡してください。",
+    organization_domain_blocked: 'このドメインはブロックされています',
+    organization_domain_common: 'このドメインは一般的なドメインであり、使用できません',
+    organization_domain_exists_for_enterprise_connection:
+      'このドメインはすでにエンタープライズ接続で使用されています',
+    organization_membership_quota_exceeded: '組織メンバー数が上限に達しました',
+    organization_minimum_permissions_needed: 'この操作を実行する権限がありません',
+    passkey_already_exists: 'このパスキーはすでに登録されています',
+    passkey_not_supported: 'このデバイスではパスキーがサポートされていません',
+    passkey_pa_not_supported: 'このサイトではパスキーがサポートされていません',
+    passkey_registration_cancelled: 'パスキーの登録がキャンセルされました',
+    passkey_retrieval_cancelled: 'パスキーの取得がキャンセルされました',
+    passwordComplexity: {
+      maximumLength: '{{length}}文字未満',
+      minimumLength: '{{length}}文字以上',
+      requireLowercase: '小文字を含む',
+      requireNumbers: '数字を含む',
+      requireSpecialCharacter: '特殊文字を含む',
+      requireUppercase: '大文字を含む',
+      sentencePrefix: 'パスワードは次の条件を満たす必要があります：',
+    },
+    phone_number_exists: 'この電話番号は既に使用されています。別の電話番号を試してください。',
+    session_exists: 'すでにサインインしています。',
+    web3_missing_identifier: 'Web3ウォレットアドレスが見つかりません',
+    zxcvbn: {
+      couldBeStronger: 'パスワードは有効ですが、もう少し強化できます。文字を追加してみてください。',
+      goodPassword: '素晴らしい仕事です。これは優れたパスワードです。',
+      notEnough: 'パスワードの強度が十分ではありません。',
+      suggestions: {
+        allUppercase: '全ての文字を大文字にするのではなく、一部の文字を大文字にしてください。',
+        anotherWord: 'より一般的でない単語を追加してください。',
+        associatedYears: '自分に関連する年号は避けてください。',
+        capitalization: '最初の文字以外も大文字にしてください。',
+        dates: '自分に関連する日付や年号は避けてください。',
+        l33t: "予測可能な文字の代替（例：'@' で 'a' を置き換える）を避けてください。",
+        longerKeyboardPattern:
+          '長いキーボードパターンを使用し、タイピングの方向を複数回変えてください。',
+        noNeed: 'シンボル、数字、大文字の使用なしでも強力なパスワードを作成できます。',
+        pwned: '他の場所でこのパスワードを使用している場合は、変更する必要があります。',
+        recentYears: '最近の年号は避けてください。',
+        repeated: '繰り返される単語や文字を避けてください。',
+        reverseWords: '一般的な単語の逆さ読みは避けてください。',
+        sequences: '一般的な文字の並びを避けてください。',
+        useWords: '複数の単語を使用してくださいが、一般的なフレーズは避けてください。',
+      },
+      warnings: {
+        common: 'これは一般的に使われるパスワードです。',
+        commonNames: '一般的な名前や姓は推測しやすいです。',
+        dates: '日付は推測しやすいです。',
+        extendedRepeat: '「abcabcabc」といった繰り返しパターンは推測しやすいです。',
+        keyPattern: '短いキーボードパターンは推測しやすいです。',
+        namesByThemselves: '単体の名前や姓は推測しやすいです。',
+        pwned: 'このパスワードはインターネット上のデータ侵害によって公開されています。',
+        recentYears: '最近の年号は推測しやすいです。',
+        sequences: '「abc」といった一般的な文字の並びは推測しやすいです。',
+        similarToCommon: 'これは一般的に使われるパスワードに類似しています。',
+        simpleRepeat: '「aaa」といった繰り返し文字は推測しやすいです。',
+        straightRow: 'キーボード上の連続した行は推測しやすいです。',
+        topHundred: 'これは頻繁に使われるパスワードです。',
+        topTen: 'これはよく使われるパスワードです。',
+        userInputs: '個人情報やページに関連するデータは含まれていないはずです。',
+        wordByItself: '単語単体では推測しやすいです。',
+      },
+    },
+  },
+  userButton: {
+    action__addAccount: 'アカウントの追加',
+    action__manageAccount: 'アカウントの管理',
+    action__signOut: 'サインアウト',
+    action__signOutAll: '全てのアカウントからサインアウト',
+  },
+  userProfile: {
+    apiKeysPage: {
+      title: 'APIキー',
+    },
+    backupCodePage: {
+      actionLabel__copied: 'コピー済み！',
+      actionLabel__copy: 'すべてコピー',
+      actionLabel__download: '.txtでダウンロード',
+      actionLabel__print: '印刷',
+      infoText1: 'このアカウントではバックアップコードが有効になります。',
+      infoText2:
+        'バックアップコードは秘密に保管し、安全に保存してください。疑わしい場合はバックアップコードを再生成することができます。',
+      subtitle__codelist: 'バックアップコードを安全に保管し、秘密にしてください。',
+      successMessage:
+        'バックアップコードが有効になりました。認証デバイスにアクセスできない場合、これらのいずれかを使用してアカウントにサインインできます。各コードは一度しか使用できません。',
+      successSubtitle:
+        '認証デバイスにアクセスできない場合、これらのいずれかを使用してアカウントにサインインできます。',
+      title: 'バックアップコードの追加',
+      title__codelist: 'バックアップコード',
+    },
+    billingPage: {
+      paymentHistorySection: {
+        empty: '支払い履歴がありません',
+        notFound: '支払い履歴が見つかりません',
+        tableHeader__amount: '金額',
+        tableHeader__date: '日付',
+        tableHeader__status: 'ステータス',
+      },
+      paymentSourcesSection: {
+        actionLabel__default: 'デフォルトに設定',
+        actionLabel__remove: '削除',
+        add: '支払い方法を追加',
+        addSubtitle: '新しい支払い方法を追加します',
+        cancelButton: 'キャンセル',
+        formButtonPrimary__add: '追加',
+        formButtonPrimary__pay: '支払う',
+        payWithTestCardButton: 'テストカードで支払う',
+        removeResource: {
+          messageLine1: 'この支払い方法を削除しますか？',
+          messageLine2: 'この操作は元に戻せません。',
+          successMessage: '支払い方法が削除されました',
+          title: '支払い方法の削除',
+        },
+        title: '支払い方法',
+      },
+      start: {
+        headerTitle__payments: '支払い',
+        headerTitle__plans: 'プラン',
+        headerTitle__statements: '明細書',
+        headerTitle__subscriptions: 'サブスクリプション',
+      },
+      statementsSection: {
+        empty: '明細書がありません',
+        itemCaption__paidForPlan: '{{planName}}プランの支払い',
+        itemCaption__proratedCredit: '日割計算によるクレジット',
+        itemCaption__subscribedAndPaidForPlan: '{{planName}}プランの購読と支払い',
+        notFound: '明細書が見つかりません',
+        tableHeader__amount: '金額',
+        tableHeader__date: '日付',
+        title: '明細書',
+        totalPaid: '支払い総額',
+      },
+      subscriptionsListSection: {
+        actionLabel__newSubscription: '新しいサブスクリプション',
+        actionLabel__switchPlan: 'プランを変更',
+        tableHeader__edit: '編集',
+        tableHeader__plan: 'プラン',
+        tableHeader__startDate: '開始日',
+        title: 'サブスクリプション',
+      },
+      subscriptionsSection: {
+        actionLabel__default: 'デフォルト',
+      },
+      switchPlansSection: {
+        title: 'プランを変更',
+      },
+      title: '請求',
+    },
+    connectedAccountPage: {
+      formHint: 'アカウントを連携するプロバイダを選択してください。',
+      formHint__noAccounts: '利用可能な外部アカウントプロバイダはありません。',
+      removeResource: {
+        messageLine1: '{{identifier}}はこのアカウントから削除されます。',
+        messageLine2:
+          'この連携アカウントを使用することはできなくなり、関連する機能も使用できなくなります。',
+        successMessage: '{{connectedAccount}}がアカウントから削除されました。',
+        title: '連携アカウントの削除',
+      },
+      socialButtonsBlockButton: '{{provider|titleize}}アカウントを連携する',
+      successMessage: 'プロバイダがアカウントに追加されました',
+      title: '連携アカウントの追加',
+    },
+    deletePage: {
+      actionDescription: '続行するには下記に「Delete account」を入力してください。',
+      confirm: 'アカウント削除',
+      messageLine1: 'アカウントを削除してもよろしいですか？',
+      messageLine2: 'この操作は永久的で取り消すことはできません。',
+      title: 'アカウントの削除',
+    },
+    emailAddressPage: {
+      emailCode: {
+        formHint: 'このメールアドレスには検証コードが含まれたメールが送信されます。',
+        formSubtitle: '{{identifier}}に送信された検証コードを入力してください。',
+        formTitle: '検証コード',
+        resendButton: 'コードを再送信',
+        successMessage: 'メールアドレス{{identifier}}がアカウントに追加されました。',
+      },
+      emailLink: {
+        formHint: 'このメールアドレスには検証リンクが含まれたメールが送信されます。',
+        formSubtitle: '{{identifier}}に送信されたメールの検証リンクをクリックしてください。',
+        formTitle: '検証リンク',
+        resendButton: 'リンクを再送信',
+        successMessage: 'メールアドレス{{identifier}}がアカウントに追加されました。',
+      },
+      enterpriseSSOLink: {
+        formButton: '続行',
+        formSubtitle: '組織のSSOを使用して続行します',
+      },
+      formHint: 'このメールアドレスを追加してアカウントにリンクします',
+      removeResource: {
+        messageLine1: '{{identifier}}はこのアカウントから削除されます。',
+        messageLine2: 'このメールアドレスを使用してのサインインはできなくなります。',
+        successMessage: '{{emailAddress}}がアカウントから削除されました。',
+        title: 'メールアドレスの削除',
+      },
+      title: 'メールアドレスの追加',
+      verifyTitle: 'メールアドレスの確認',
+    },
+    formButtonPrimary__add: '追加',
+    formButtonPrimary__continue: '続行',
+    formButtonPrimary__finish: '完了',
+    formButtonPrimary__remove: '削除',
+    formButtonPrimary__save: '保存',
+    formButtonReset: 'キャンセル',
+    mfaPage: {
+      formHint: '追加する方法を選択してください。',
+      title: '二段階認証の追加',
+    },
+    mfaPhoneCodePage: {
+      backButton: '既存の番号を使用',
+      primaryButton__addPhoneNumber: '電話番号を追加',
+      removeResource: {
+        messageLine1: '{{identifier}}はサインイン時に認証コードを受け取らなくなります。',
+        messageLine2: 'アカウントのセキュリティが低下する可能性があります。本当に削除しますか？',
+        successMessage: '{{mfaPhoneCode}}のSMSコード二段階認証が削除されました。',
+        title: '二段階認証の削除',
+      },
+      subtitle__availablePhoneNumbers:
+        'SMSコード二段階認証のために登録する電話番号を選択してください。',
+      subtitle__unavailablePhoneNumbers:
+        'SMSコード二段階認証のために利用可能な電話番号はありません。',
+      successMessage1:
+        'サインイン時に、この電話番号に送信される検証コードを追加のステップとして入力する必要があります。',
+      successMessage2:
+        'これらのバックアップコードを保存し、安全な場所に保管してください。認証デバイスにアクセスできなくなった場合、バックアップコードを使用してサインインできます。',
+      successTitle: 'SMSコード認証が有効になりました',
+      title: 'SMSコード認証の追加',
+    },
+    mfaTOTPPage: {
+      authenticatorApp: {
+        buttonAbleToScan__nonPrimary: '代わりにQRコードをスキャンする',
+        buttonUnableToScan__nonPrimary: 'QRコードをスキャンできませんか？',
+        infoText__ableToScan:
+          '認証アプリで新しいサインイン方法を設定し、以下のQRコードをスキャンしてアカウントとリンクさせます。',
+        infoText__unableToScan:
+          '認証アプリで新しいサインイン方法を設定し、以下のキーを入力してください。',
+        inputLabel__unableToScan1:
+          'タイムベースまたはワンタイムパスワードが有効になっていることを確認し、アカウントのリンクを完了してください。',
+        inputLabel__unableToScan2:
+          'また、認証アプリがTOTP URIをサポートしている場合は、完全なURIをコピーすることもできます。',
+      },
+      removeResource: {
+        messageLine1: 'この認証アプリからの検証コードは、サインイン時には不要になります。',
+        messageLine2: 'アカウントのセキュリティが低下する可能性があります。本当に削除しますか？',
+        successMessage: '認証アプリを使用した二段階認証が削除されました。',
+        title: '二段階認証の削除',
+      },
+      successMessage:
+        '二段階認証が有効になりました。サインイン時には、この認証アプリからの検証コードを追加のステップとして入力する必要があります。',
+      title: '認証アプリの追加',
+      verifySubtitle: '認証アプリで生成された検証コードを入力してください。',
+      verifyTitle: '検証コード',
+    },
+    mobileButton__menu: 'メニュー',
+    navbar: {
+      account: 'プロファイル',
+      apiKeys: 'APIキー',
+      billing: '請求',
+      description: 'アカウント情報管理',
+      security: 'セキュリティ',
+      title: 'アカウント',
+    },
+    passkeyScreen: {
+      removeResource: {
+        messageLine1: 'このパスキーを削除しますか？',
+        title: 'パスキーの削除',
+      },
+      subtitle__rename: 'パスキーの名前を変更します',
+      title__rename: 'パスキーの名前を変更',
+    },
+    passwordPage: {
+      checkboxInfoText__signOutOfOtherSessions:
+        '古いパスワードを使用している可能性のあるすべてのデバイスからサインアウトすることをお勧めします。',
+      readonly: 'プロファイル情報はエンタープライズ接続によって提供されており、編集できません。',
+      successMessage__set: 'パスワードが設定されました。',
+      successMessage__signOutOfOtherSessions: '他のすべてのデバイスからサインアウトされました。',
+      successMessage__update: 'パスワードが更新されました。',
+      title__set: 'パスワードの設定',
+      title__update: 'パスワードの更新',
+    },
+    phoneNumberPage: {
+      infoText: 'この電話番号には検証リンクが含まれたテキストメッセージが送信されます。',
+      removeResource: {
+        messageLine1: '{{identifier}}はこのアカウントから削除されます。',
+        messageLine2: 'この電話番号を使用してのサインインはできなくなります。',
+        successMessage: '{{phoneNumber}}がアカウントから削除されました。',
+        title: '電話番号の削除',
+      },
+      successMessage: '{{identifier}}がアカウントに追加されました。',
+      title: '電話番号の追加',
+      verifySubtitle: '{{identifier}}に送信された検証コードを入力してください',
+      verifyTitle: '電話番号の確認',
+    },
+    plansPage: {
+      title: 'プラン',
+    },
+    profilePage: {
+      fileDropAreaHint: '10MB未満のJPG、PNG、GIF、またはWEBP画像をアップロードしてください',
+      imageFormDestructiveActionSubtitle: '画像の削除',
+      imageFormSubtitle: '画像のアップロード',
+      imageFormTitle: 'プロフィール画像',
+      readonly: 'プロファイル情報はエンタープライズ接続によって提供されており、編集できません。',
+      successMessage: 'プロフィールが更新されました。',
+      title: 'プロフィールの更新',
+    },
+    start: {
+      activeDevicesSection: {
+        destructiveAction: 'デバイスからサインアウト',
+        title: 'アクティブなデバイス',
+      },
+      connectedAccountsSection: {
+        actionLabel__connectionFailed: '再試行',
+        actionLabel__reauthorize: '今すぐ認証',
+        destructiveActionTitle: '削除',
+        primaryButton: 'アカウントを連携する',
+        subtitle__disconnected: '接続が切断されました',
+        subtitle__reauthorize:
+          '必要なスコープが更新され、機能が制限されている可能性があります。問題を避けるために、このアプリケーションを再認証してください。',
+        title: '連携アカウント',
+      },
+      dangerSection: {
+        deleteAccountButton: 'アカウントの削除',
+        title: 'アカウントの終了',
+      },
+      emailAddressesSection: {
+        destructiveAction: 'メールアドレスの削除',
+        detailsAction__nonPrimary: 'プライマリに設定する',
+        detailsAction__primary: '確認を完了する',
+        detailsAction__unverified: '確認を完了する',
+        primaryButton: 'メールアドレスの追加',
+        title: 'メールアドレス',
+      },
+      enterpriseAccountsSection: {
+        title: 'エンタープライズアカウント',
+      },
+      headerTitle__account: 'アカウント',
+      headerTitle__security: 'セキュリティ',
+      mfaSection: {
+        backupCodes: {
+          actionLabel__regenerate: 'コードを再生成',
+          headerTitle: 'バックアップコード',
+          subtitle__regenerate:
+            '安全な新しいバックアップコードを取得します。以前のバックアップコードは削除され、使用することはできません。',
+          title__regenerate: 'バックアップコードの再生成',
+        },
+        phoneCode: {
+          actionLabel__setDefault: 'デフォルトに設定',
+          destructiveActionLabel: '電話番号の削除',
+        },
+        primaryButton: '二段階認証を追加する',
+        title: '二段階認証',
+        totp: {
+          destructiveActionTitle: '削除',
+          headerTitle: '認証アプリケーション',
+        },
+      },
+      passkeysSection: {
+        menuAction__destructive: '削除',
+        menuAction__rename: '名前を変更',
+        primaryButton: 'パスキーを追加',
+        title: 'パスキー',
+      },
+      passwordSection: {
+        primaryButton__setPassword: 'パスワードを設定する',
+        primaryButton__updatePassword: 'パスワードを変更する',
+        title: 'パスワード',
+      },
+      phoneNumbersSection: {
+        destructiveAction: '電話番号の削除',
+        detailsAction__nonPrimary: 'プライマリに設定する',
+        detailsAction__primary: '確認を完了する',
+        detailsAction__unverified: '確認を完了する',
+        primaryButton: '電話番号の追加',
+        title: '電話番号',
+      },
+      profileSection: {
+        primaryButton: 'プロフィールを編集',
+        title: 'プロフィール',
+      },
+      usernameSection: {
+        primaryButton__setUsername: 'ユーザー名の設定',
+        primaryButton__updateUsername: 'ユーザー名の変更',
+        title: 'ユーザー名',
+      },
+      web3WalletsSection: {
+        destructiveAction: 'ウォレットの削除',
+        detailsAction__nonPrimary: 'プライマリに設定',
+        primaryButton: 'Web3ウォレット',
+        title: 'Web3ウォレット',
+      },
+    },
+    usernamePage: {
+      successMessage: 'ユーザー名が更新されました。',
+      title__set: 'ユーザー名の更新',
+      title__update: 'ユーザー名の更新',
+    },
+    web3WalletPage: {
+      removeResource: {
+        messageLine1: '{{identifier}}はこのアカウントから削除されます。',
+        messageLine2: 'このWeb3ウォレットを使用してのサインインはできなくなります。',
+        successMessage: '{{web3Wallet}}がアカウントから削除されました。',
+        title: 'Web3ウォレットの削除',
+      },
+      subtitle__availableWallets: 'アカウントに接続するWeb3ウォレットを選択してください。',
+      subtitle__unavailableWallets: '利用可能なWeb3ウォレットはありません。',
+      successMessage: 'ウォレットがアカウントに追加されました。',
+      title: 'Web3ウォレットの追加',
+      web3WalletButtonsBlockButton: '{{provider}}ウォレットを接続',
+    },
+  },
+  waitlist: {
+    start: {
+      actionLink: 'サインイン',
+      actionText: 'アカウントをお持ちですか？',
+      formButton: 'ウェイトリストに登録',
+      subtitle: '新しい機能やアップデートについて最初にお知らせいたします',
+      title: 'ウェイトリストに登録',
+    },
+    success: {
+      message: 'ウェイトリストへの登録が完了しました。',
+      subtitle: '新しい情報があり次第お知らせいたします',
+      title: '登録が完了しました！',
+    },
+  },
+} as const
+```
+ 
+続けて、`src/app/layout.tsx` にて `ClerkProvider` に対し、`localization` プロパティとして `extendedJaJP` を渡すよう、変更します。
+ 
+```ts
+// ...略
+import { extendedJaJP } from '@/locales/extended_ja_jp';
+// ...略
+ 
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <ClerkProvider localization={extendedJaJP}>
+      // ...略
+    </ClerkProvider>
+  );
+}
+```
+ 
+これで翻訳の準備はOKです
+ 
+## 3. 日本語化の確認
+ 
+設定が完了したら、アプリケーションを起動して日本語化が適用されているか確認しましょう。
+ 
+```bash
+npm run dev
+```
