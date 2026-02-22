@@ -2,8 +2,10 @@ import { Clock, Calendar, TrendingUp, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import TimerSection from '@/components/TimerSection'
 import ManualEntryModal from '@/components/ManualEntryModal'
+import WorkHistory from '@/components/WorkHistory'
+import ExportModal from '@/components/ExportModal'
 import { createAuthenticatedSupabaseClient } from '@/lib/supabase-auth'
-import { TimeEntry } from '@/types'
+import { Category, TimeEntry } from '@/types'
 
 // =============================================
 // 日付ユーティリティ（Asia/Tokyo = UTC+9）
@@ -38,34 +40,11 @@ function formatDuration(seconds: number): string {
   return `${h}時間${String(m).padStart(2, '0')}分`
 }
 
-function formatEntryDate(isoString: string): string {
+
+/** JST 日付キー（YYYY-MM-DD）を返す */
+function jstDateKey(isoString: string): string {
   const jst = new Date(new Date(isoString).getTime() + JST_OFFSET)
-  const month = jst.getUTCMonth() + 1
-  const day = jst.getUTCDate()
-  const h = String(jst.getUTCHours()).padStart(2, '0')
-  const m = String(jst.getUTCMinutes()).padStart(2, '0')
-  return `${month}/${day} ${h}:${m}`
-}
-
-const COLOR_BG: Record<string, string> = {
-  'red-500': 'bg-red-500',
-  'orange-500': 'bg-orange-500',
-  'amber-500': 'bg-amber-500',
-  'yellow-500': 'bg-yellow-500',
-  'lime-500': 'bg-lime-500',
-  'green-500': 'bg-green-500',
-  'teal-500': 'bg-teal-500',
-  'cyan-500': 'bg-cyan-500',
-  'blue-500': 'bg-blue-500',
-  'indigo-500': 'bg-indigo-500',
-  'violet-500': 'bg-violet-500',
-  'purple-500': 'bg-purple-500',
-  'pink-500': 'bg-pink-500',
-  'rose-500': 'bg-rose-500',
-}
-
-function getColorBg(color: string): string {
-  return COLOR_BG[color] ?? 'bg-blue-500'
+  return jst.toISOString().slice(0, 10)
 }
 
 // =============================================
@@ -79,75 +58,98 @@ async function fetchDashboardData() {
     const startToday = startOfDayJST(now)
     const startWeek = startOfWeekJST(now)
     const startMonth = startOfMonthJST(now)
-    // 週と月で早い方から取得
     const queryFrom = startWeek < startMonth ? startWeek : startMonth
 
-    // 統計用: 今月〜今日分をまとめて取得
+    // 統計用エントリ（今週 or 今月の早い方から取得）
     const { data: statsEntries } = await supabase
       .from('time_entries')
       .select('started_at, duration_seconds')
       .gte('started_at', queryFrom.toISOString())
 
-    const todaySeconds =
-      statsEntries
-        ?.filter((e) => new Date(e.started_at) >= startToday)
-        .reduce((sum, e) => sum + e.duration_seconds, 0) ?? 0
+    const all = statsEntries ?? []
 
-    const weekSeconds =
-      statsEntries
-        ?.filter((e) => new Date(e.started_at) >= startWeek)
-        .reduce((sum, e) => sum + e.duration_seconds, 0) ?? 0
+    const todayEntries = all.filter((e) => new Date(e.started_at) >= startToday)
+    const weekEntries  = all.filter((e) => new Date(e.started_at) >= startWeek)
+    const monthEntries = all.filter((e) => new Date(e.started_at) >= startMonth)
 
-    const monthSeconds =
-      statsEntries
-        ?.filter((e) => new Date(e.started_at) >= startMonth)
-        .reduce((sum, e) => sum + e.duration_seconds, 0) ?? 0
+    const todaySeconds  = todayEntries.reduce((s, e) => s + e.duration_seconds, 0)
+    const weekSeconds   = weekEntries.reduce((s, e) => s + e.duration_seconds, 0)
+    const monthSeconds  = monthEntries.reduce((s, e) => s + e.duration_seconds, 0)
 
-    // 最近10件（カテゴリ情報含む）
+    const todayCount = todayEntries.length
+    const weekCount  = weekEntries.length
+    const monthCount = monthEntries.length
+
+    // アクティブ日数（ユニーク日付の数）
+    const weekActiveDays  = new Set(weekEntries.map((e) => jstDateKey(e.started_at))).size
+    const monthActiveDays = new Set(monthEntries.map((e) => jstDateKey(e.started_at))).size
+
+    // 今週の日別秒数（月〜日の7日分）
+    const weekDaySeconds: number[] = Array(7).fill(0)
+    for (const e of weekEntries) {
+      const jst = new Date(new Date(e.started_at).getTime() + JST_OFFSET)
+      const dow = jst.getUTCDay() // 0=Sun
+      const idx = dow === 0 ? 6 : dow - 1 // 月=0 … 日=6
+      weekDaySeconds[idx] += e.duration_seconds
+    }
+
+    // 作業履歴（カテゴリ情報含む、最大50件）
     const { data: recentEntries } = await supabase
       .from('time_entries')
       .select('*, category:categories(*)')
       .order('started_at', { ascending: false })
-      .limit(10)
+      .limit(50)
+
+    // カテゴリ一覧（編集モーダル用）
+    const { data: categories } = await supabase
+      .from('categories')
+      .select('*')
+      .order('is_favorite', { ascending: false })
+      .order('name', { ascending: true })
 
     return {
-      todaySeconds,
-      weekSeconds,
-      monthSeconds,
+      todaySeconds, weekSeconds, monthSeconds,
+      todayCount, weekCount, monthCount,
+      weekActiveDays, monthActiveDays,
+      weekDaySeconds,
       recentEntries: (recentEntries as TimeEntry[]) ?? [],
+      categories: (categories as Category[]) ?? [],
     }
   } catch {
-    return { todaySeconds: 0, weekSeconds: 0, monthSeconds: 0, recentEntries: [] }
+    return {
+      todaySeconds: 0, weekSeconds: 0, monthSeconds: 0,
+      todayCount: 0, weekCount: 0, monthCount: 0,
+      weekActiveDays: 0, monthActiveDays: 0,
+      weekDaySeconds: Array(7).fill(0),
+      recentEntries: [], categories: [],
+    }
   }
 }
 
 // =============================================
 // ページ
 // =============================================
-export default async function DashboardPage() {
-  const { todaySeconds, weekSeconds, monthSeconds, recentEntries } =
-    await fetchDashboardData()
+const WEEK_LABELS = ['月', '火', '水', '木', '金', '土', '日']
 
-  const statCards = [
-    {
-      label: '今日の作業時間',
-      icon: Clock,
-      value: formatDuration(todaySeconds),
-      sub: todaySeconds > 0 ? `${Math.ceil(todaySeconds / 60)}分の作業` : '記録がありません',
-    },
-    {
-      label: '今週の作業時間',
-      icon: Calendar,
-      value: formatDuration(weekSeconds),
-      sub: weekSeconds > 0 ? `${Math.ceil(weekSeconds / 60)}分の作業` : '記録がありません',
-    },
-    {
-      label: '今月の作業時間',
-      icon: TrendingUp,
-      value: formatDuration(monthSeconds),
-      sub: monthSeconds > 0 ? `${Math.ceil(monthSeconds / 60)}分の作業` : '記録がありません',
-    },
-  ]
+export default async function DashboardPage() {
+  const {
+    todaySeconds, weekSeconds, monthSeconds,
+    todayCount, weekCount, monthCount,
+    weekActiveDays, monthActiveDays,
+    weekDaySeconds,
+    recentEntries, categories,
+  } = await fetchDashboardData()
+
+  // 今日が週の何日目か（月=0）
+  const nowJST = new Date(Date.now() + JST_OFFSET)
+  const todayDowIdx = nowJST.getUTCDay() === 0 ? 6 : nowJST.getUTCDay() - 1
+
+  // 週・月の日平均（アクティブ日のみ）
+  const weekDailyAvg  = weekActiveDays  > 0 ? Math.floor(weekSeconds  / weekActiveDays)  : 0
+  const monthDailyAvg = monthActiveDays > 0 ? Math.floor(monthSeconds / monthActiveDays) : 0
+
+  // 週間チャートの最大値（バーの高さ計算用）
+  const weekMaxSeconds = Math.max(...weekDaySeconds, 1)
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -157,29 +159,101 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold text-gray-900">ダッシュボード</h1>
           <p className="mt-1 text-sm text-gray-600">作業時間のサマリーと最近の記録</p>
         </div>
-        <ManualEntryModal />
+        <div className="flex items-center gap-2">
+          <ExportModal />
+          <ManualEntryModal />
+        </div>
       </div>
 
       {/* 統計カード */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {statCards.map((card) => {
-          const Icon = card.icon
-          return (
-            <div
-              key={card.label}
-              className="rounded-2xl border border-gray-300 bg-white p-6 shadow-md transition-all duration-200 hover:border-gray-400 hover:shadow-lg"
-            >
-              <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 shadow-sm">
-                  <Icon className="h-4 w-4 text-white" />
-                </div>
-                <span className="text-sm font-semibold text-gray-700">{card.label}</span>
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-              <p className="mt-1 text-xs text-gray-500">{card.sub}</p>
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* 今日 */}
+        <div className="rounded-2xl border border-gray-300 bg-white p-6 shadow-md transition-all duration-200 hover:border-gray-400 hover:shadow-lg">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 shadow-sm">
+              <Clock className="h-4 w-4 text-white" />
             </div>
-          )
-        })}
+            <span className="text-sm font-semibold text-gray-700">今日の作業時間</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{formatDuration(todaySeconds)}</p>
+          <p className="mt-1 text-xs text-gray-500">
+            {todayCount > 0 ? `${todayCount}件の記録` : '記録がありません'}
+          </p>
+        </div>
+
+        {/* 今週 */}
+        <div className="rounded-2xl border border-gray-300 bg-white p-6 shadow-md transition-all duration-200 hover:border-gray-400 hover:shadow-lg">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 shadow-sm">
+              <Calendar className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">今週の作業時間</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{formatDuration(weekSeconds)}</p>
+          <p className="mt-1 text-xs text-gray-500">
+            {weekCount > 0
+              ? `${weekCount}件 / ${weekActiveDays}日 / 平均 ${formatDuration(weekDailyAvg)}/日`
+              : '記録がありません'}
+          </p>
+        </div>
+
+        {/* 今月 */}
+        <div className="rounded-2xl border border-gray-300 bg-white p-6 shadow-md transition-all duration-200 hover:border-gray-400 hover:shadow-lg">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500 shadow-sm">
+              <TrendingUp className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">今月の作業時間</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">{formatDuration(monthSeconds)}</p>
+          <p className="mt-1 text-xs text-gray-500">
+            {monthCount > 0
+              ? `${monthCount}件 / ${monthActiveDays}日 / 平均 ${formatDuration(monthDailyAvg)}/日`
+              : '記録がありません'}
+          </p>
+        </div>
+      </div>
+
+      {/* 今週の日別チャート */}
+      <div className="mb-8 rounded-2xl border border-gray-300 bg-white p-6 shadow-md">
+        <p className="mb-4 text-sm font-semibold text-gray-700">今週の日別作業時間</p>
+        <div className="flex items-end justify-between gap-2">
+          {weekDaySeconds.map((sec, i) => {
+            const isToday = i === todayDowIdx
+            const heightPct = Math.round((sec / weekMaxSeconds) * 100)
+            return (
+              <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                {/* 時間ラベル */}
+                {sec > 0 && (
+                  <span className="text-xs font-semibold text-blue-700">
+                    {Math.floor(sec / 3600) > 0
+                      ? `${Math.floor(sec / 3600)}h`
+                      : `${Math.floor(sec / 60)}m`}
+                  </span>
+                )}
+                {/* バー */}
+                <div className="flex h-24 w-full items-end rounded-lg bg-gray-100">
+                  {sec > 0 && (
+                    <div
+                      className={`w-full rounded-lg transition-all duration-300 ${
+                        isToday ? 'bg-blue-500' : 'bg-blue-300'
+                      }`}
+                      style={{ height: `${Math.max(heightPct, 8)}%` }}
+                    />
+                  )}
+                </div>
+                {/* 曜日ラベル */}
+                <span
+                  className={`text-xs font-semibold ${
+                    isToday ? 'text-blue-600' : 'text-gray-500'
+                  }`}
+                >
+                  {WEEK_LABELS[i]}
+                </span>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {/* タイマーエリア */}
@@ -187,10 +261,10 @@ export default async function DashboardPage() {
         <TimerSection />
       </div>
 
-      {/* 最近の作業記録 */}
+      {/* 作業履歴 */}
       <div className="rounded-2xl border border-gray-300 bg-white shadow-md">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">最近の作業記録</h2>
+          <h2 className="text-lg font-semibold text-gray-900">作業履歴</h2>
           <Link
             href="/categories"
             className="flex items-center gap-1 text-sm font-semibold text-blue-700 transition-colors duration-200 hover:text-blue-800"
@@ -199,54 +273,7 @@ export default async function DashboardPage() {
             <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
-
-        {recentEntries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-gray-300 bg-gray-50 shadow-sm">
-              <Clock className="h-8 w-8 text-gray-400" />
-            </div>
-            <p className="mb-1 font-semibold text-gray-700">作業記録がありません</p>
-            <p className="text-sm text-gray-500">タイマーを使って作業時間を記録しましょう</p>
-          </div>
-        ) : (
-          <ul className="divide-y divide-gray-100">
-            {recentEntries.map((entry) => (
-              <li
-                key={entry.id}
-                className="flex items-center gap-4 px-6 py-4 transition-colors duration-150 hover:bg-gray-50"
-              >
-                {/* カテゴリカラー */}
-                <div
-                  className={`h-3 w-3 flex-shrink-0 rounded-full ${
-                    entry.category ? getColorBg(entry.category.color) : 'bg-gray-300'
-                  }`}
-                />
-
-                {/* カテゴリ名 */}
-                <span className="w-32 flex-shrink-0 truncate text-sm font-semibold text-gray-900">
-                  {entry.category?.name ?? '不明'}
-                </span>
-
-                {/* 作業時間 */}
-                <span className="flex-1 text-sm font-semibold text-blue-700">
-                  {formatDuration(entry.duration_seconds)}
-                </span>
-
-                {/* メモ */}
-                {entry.memo && (
-                  <span className="hidden max-w-xs truncate text-sm text-gray-500 sm:block">
-                    {entry.memo}
-                  </span>
-                )}
-
-                {/* 日時 */}
-                <span className="flex-shrink-0 text-xs text-gray-500">
-                  {formatEntryDate(entry.started_at)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <WorkHistory entries={recentEntries} categories={categories} />
       </div>
     </div>
   )
