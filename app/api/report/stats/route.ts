@@ -109,7 +109,7 @@ export async function GET(request: Request) {
     const { data: prevData, error: e2 } = await prevQ
     if (e2) throw e2
 
-    const cur = (curData ?? []) as FullEntry[]
+    const cur = (curData ?? []) as unknown as FullEntry[]
 
     return NextResponse.json({
       current:                   computeStats(cur),
